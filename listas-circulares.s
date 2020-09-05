@@ -1,5 +1,20 @@
-    .data
-Menu:  .asciiz "[Menu Principal]"
-Opcion1:  .ascizz "1) Configurar una lista"
-Opcion2:  .asciiz "2) Ver una lista"
-Opcion3:  .asciiz "3) Salir"
+            .data
+Menu:       .asciiz "[Menu Principal]
+1) Agregar una lista
+2) Eliminar una lista
+3) Agregar un elemento a una lista
+4) Eliminar un elemento de una lista
+5) Ver una lista
+6) Salir \n
+Elija una opcion: "
+
+            .text
+main:
+            li $v0, 4
+            la $a0, Menu
+            syscall
+
+            li $v0, 6
+            syscall
+
+            jal $ra
