@@ -1,20 +1,90 @@
             .data
-Menu:       .asciiz "[Menu Principal]
-1) Agregar una lista
-2) Eliminar una lista
-3) Agregar un elemento a una lista
-4) Eliminar un elemento de una lista
-5) Ver una lista
-6) Salir \n
-Elija una opcion: "
+# Menu:       .asciiz "[Menu Principal]
+# 1) Agregar una lista
+# 2) Eliminar una lista
+# 3) Agregar un elemento a una lista
+# 4) Eliminar un elemento de una lista
+# 5) Ver una lista
+# 6) Salir \n
+# Elija una opcion: "
+#
+# Crear:      .asciiz "[Crear una lista]
+# Ingrese el nombre de la nueva lista: "
+#
+
+# struct List {
+#     struct List *prev;
+#     char *name;
+#     struct List *obj_ptr, *prev;
+# };
+#
+# typedef struct List* List;
+
+# sbrk -> 10001010
+#
+#   prev   -  nombre  -  obj_ptr -   sig
+#
+# 10001000 - 10001004 - 10001008 - 10001012
+
 
             .text
 main:
-            li $v0, 4
-            la $a0, Menu
-            syscall
+    # li $v0, 4
+    # la $a0, Menu
+    # syscall
+    #
+    # li $v0, 5 # Ingresa un entero
+    # syscall
 
-            li $v0, 6
-            syscall
+    addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
 
-            jal $ra
+    jal new_element # Llama a new_element
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4 # Carga el contenido anterior de $ra
+
+    jr $ra
+
+# Crea un nuevo elemento
+# Recibe en $a0 la direccion de la lista, en $a1 la direccion del nombre
+# y en $a2 la direccion del obj ptr
+
+new_element:
+    move $t0, $a0
+
+    # Pide memoria, la direccion del nuevo elemento va a aparecer en $v0
+    li $v0, 9
+    li $a0, 16
+    syscall
+
+    sw $a1, 4($v0)  # Guarda el nombre de la lista en el nuevo elemento
+    sw $a2, 8($v0)  # Guarda la direc del objeto en el nuevo elemento
+
+    beq $t0, $zero, empty
+
+    lw $t1, 0($t0)  # Obtiene la direc del previo del antiguo elemento
+    sw $t1, 0($v0)  # Guarda la direc del previo en el nuevo elemento
+    sw $t0, 12($v0) # Guarda la direc del siguiente en el nuevo elemento
+
+    sw $v0, 0($t0)
+    sw $v0, 12($t1)
+
+    j final
+
+    empty:
+        sw $v0, 0($v0)  # Guarda la direc del previo en el nuevo elemento
+        sw $v0, 12($v0) # Guarda la direc del siguiente en el nuevo elemento
+
+    final:
+      jr $ra
+
+ #      f ->  1 -> 2 -> 3 -> 4 -> 1 .....
+ #
+ #      $t0 = 4
+ #
+ #  (f) 1 <- 2 -> 3
+ #
+ #      3 <- 4 -> 1 (f)
+ #
+ #      4 <- f -> 1
