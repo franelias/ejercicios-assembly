@@ -1,16 +1,14 @@
             .data
-# Menu:       .asciiz "[Menu Principal]
-# 1) Agregar una lista
-# 2) Eliminar una lista
-# 3) Agregar un elemento a una lista
-# 4) Eliminar un elemento de una lista
-# 5) Ver una lista
-# 6) Salir \n
-# Elija una opcion: "
-#
-# Crear:      .asciiz "[Crear una lista]
-# Ingrese el nombre de la nueva lista: "
-#
+menu:       .asciiz "[Menu Principal]
+1) Agregar una lista
+2) Eliminar una lista
+3) Agregar un elemento a una lista
+4) Eliminar un elemento de una lista
+5) Ver las listas
+6) Salir \n
+Elija una opcion: "
+
+empty_print: .asciiz "[]"
 
 # struct List {
 #     struct List *prev;
@@ -19,13 +17,12 @@
 # };
 #
 # typedef struct List* List;
-
+#
 # sbrk -> 10001010
 #
 #   prev   -  nombre  -  obj_ptr -   sig
 #
 # 10001000 - 10001004 - 10001008 - 10001012
-
 
             .text
 main:
@@ -46,6 +43,9 @@ main:
 
     jr $ra
 
+# -----------------------------------------------------------------------------------
+
+# [Crear una lista / Agregar un elemento a una lista]
 # Crea un nuevo elemento
 # Recibe en $a0 la direccion de la lista, en $a1 la direccion del nombre
 # y en $a2 la direccion del obj ptr
@@ -77,7 +77,70 @@ new_element:
         sw $v0, 12($v0) # Guarda la direc del siguiente en el nuevo elemento
 
     final:
-      jr $ra
+        jr $ra
+
+ # -----------------------------------------------------------------------------------
+
+ # [Ver las listas]
+ # Permite ver los elementos de una lista
+ # Recibe en $a0 la direccion de la lista
+
+print_list:
+    move $t0, $a0
+
+    beq $t0, $zero, empty_list
+
+    move $t1, $t0
+
+    print:
+        li $v0, 4
+        lw $a0, 4($t0) # Muestra el string
+        syscall
+
+        lw $t2, 8($t0)
+        beq $t2, $zero, empty_sublist
+
+        addi $sp, $sp, -12 # Guarda el contenido de $ra y $t0 en la pila
+        sw $ra, 0($sp)
+        sw $t0, -4($sp)
+        sw $t1, -8($sp)
+        move $a0, $t2
+
+        jal print_list
+
+        lw $ra, 0($sp)
+        lw $t0, -4($sp)
+        lw $t1, -8($sp)
+        addi $sp, $sp, 12
+
+    empty_sublist:
+        lw $t0, 12($t0) # Guardamos en $t0 la direc del siguiente elemento
+
+    for1:
+        beq $t1, $t0, end_for1
+        j print
+        j for1
+
+    end_for1:
+        j end
+
+    empty_list:
+        li $v0, 4
+        la $a0, empty_print
+        syscall
+
+    end:
+        jr $ra
+
+# -----------------------------------------------------------------------------------
+
+# [Busca dentro de una lista]
+# Recibe en $a0 la direccion de una lista
+# y en $a1 el nombre del elemento buscado.
+
+# search:
+
+
 
  #      f ->  1 -> 2 -> 3 -> 4 -> 1 .....
  #
