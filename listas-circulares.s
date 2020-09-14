@@ -1,4 +1,4 @@
-            .data
+    .data
 menu:       .asciiz "[Menu Principal]
 1) Agregar una lista
 2) Eliminar una lista
@@ -9,6 +9,13 @@ menu:       .asciiz "[Menu Principal]
 Elija una opcion: "
 
 empty_print: .asciiz "[]"
+bracket: .asciiz "["
+bracket2: .asciiz "]"
+comma: .asciiz ", "
+
+add_q:  .asciiz "Las sublistas disponibles con sus elementos son: \n"
+
+add_l: .asciiz "Ingrese su opcion: "
 
 # struct List {
 #     struct List *prev;
@@ -24,7 +31,7 @@ empty_print: .asciiz "[]"
 #
 # 10001000 - 10001004 - 10001008 - 10001012
 
-            .text
+    .text
 main:
     # li $v0, 4
     # la $a0, Menu
@@ -37,6 +44,16 @@ main:
     sw $ra, 0($sp)
 
     jal new_element # Llama a new_element
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4 # Carga el contenido anterior de $ra
+
+    addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+
+    move $a0, $v0
+
+    jal print_list
 
     lw $ra, 0($sp)
     addi $sp, $sp, 4 # Carga el contenido anterior de $ra
@@ -79,18 +96,17 @@ new_element:
     final:
         jr $ra
 
- # -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 
- # [Ver las listas]
- # Permite ver los elementos de una lista
- # Recibe en $a0 la direccion de la lista
+# [Ver las listas]
+# Permite ver los elementos de una lista
+# Recibe en $a0 la direccion de la lista
 
 print_list:
     move $t0, $a0
+    move $t1, $a0
 
-    beq $t0, $zero, empty_list
-
-    move $t1, $t0
+    beq $a0, $zero, empty_list
 
     print:
         li $v0, 4
@@ -100,7 +116,11 @@ print_list:
         lw $t2, 8($t0)
         beq $t2, $zero, empty_sublist
 
-        addi $sp, $sp, -12 # Guarda el contenido de $ra y $t0 en la pila
+        li $v0, 4
+        la $a0, bracket($0)
+        syscall
+
+        addi $sp, $sp, -16 # Guarda el contenido de $ra y $t0 en la pila
         sw $ra, 0($sp)
         sw $t0, -4($sp)
         sw $t1, -8($sp)
@@ -113,13 +133,21 @@ print_list:
         lw $t1, -8($sp)
         addi $sp, $sp, 12
 
+        li $v0, 4
+        la $a0, bracket2($0)
+        syscall
+
     empty_sublist:
         lw $t0, 12($t0) # Guardamos en $t0 la direc del siguiente elemento
 
     for1:
         beq $t1, $t0, end_for1
+
+        li $v0, 4
+        la $a0, comma($0)
+        syscall
+
         j print
-        j for1
 
     end_for1:
         j end
@@ -137,17 +165,38 @@ print_list:
 # [Busca dentro de una lista]
 # Recibe en $a0 la direccion de una lista
 # y en $a1 el nombre del elemento buscado.
+# Devuelve en $v0, la direccion de la lista donde se encuentra el elemento
 
-# search:
+search:
+    move $t0, $a0
+
+    lw $t2, 4($t0)
+
+    li $v0, 4
+    la $a0, add_q($0)
+    syscall
+
+    addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+
+    move $a0, $v0
+
+    jal print_list
+
+    lw $ra, 0($sp)
+    addi $sp, $sp, 4 # Carga el contenido anterior de $ra
+
+    li $v0, 4
+    la $a0, add_l($0)
+    syscall
 
 
-
- #      f ->  1 -> 2 -> 3 -> 4 -> 1 .....
- #
- #      $t0 = 4
- #
- #  (f) 1 <- 2 -> 3
- #
- #      3 <- 4 -> 1 (f)
- #
- #      4 <- f -> 1
+#      f ->  1 -> 2 -> 3 -> 4 -> 1 .....
+#
+#      $t0 = 4
+#
+#  (f) 1 <- 2 -> 3
+#
+#      3 <- 4 -> 1 (f)
+#
+#      4 <- f -> 1
