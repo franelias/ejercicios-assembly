@@ -178,9 +178,15 @@ search:
     move $t1, $a0 # Guardo en $t1, la direccic de $a0
 
 xddd:
+<<<<<<< HEAD
     beq $a0, $zero, failed # Verifico si $a0 es nula
 
     lw $a1, 4($t0) # Guardo en $a1, el nombre del elemento $t0
+=======
+    beq $a0, $zero, failed
+
+    lw $a1, 4($t0)
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
     addi $sp, $sp, -20 # Guardo el contenido de $ra en la pila
     sw $ra, 0($sp)
@@ -244,6 +250,7 @@ xddd:
 # Devuelve en $v0, el padre del elemento buscado
 
 find_father:
+<<<<<<< HEAD
     move $t0, $a0 # Muevo $a0 a $t0 y $t1 para poder cambiar sus valores
     move $t1, $a0
 
@@ -255,6 +262,19 @@ find_father:
         beq $t2, $zero, empty_sublist_father # Verifico si existe la sublista
 
         addi $sp, $sp, -20 # Guardo los valores de $ra, $a0, $a1, $t0 y $t1 en la pila
+=======
+    move $t0, $a0
+    move $t1, $a0
+
+    xd_find_father:
+        beq $t0, $a1, finded
+
+        lw $t2, 8($t0)
+
+        beq $t2, $zero, empty_sublist_father
+
+        addi $sp, $sp, -20
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
         sw $ra, 0($sp)
         sw $a0, -4($sp)
         sw $a1, -8($sp)
@@ -263,13 +283,18 @@ find_father:
 
         move $a0, $t2
 
+<<<<<<< HEAD
         jal find_father # Recursa
+=======
+        jal find_father
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
         lw $ra, 0($sp)
         lw $a0, -4($sp)
         lw $a1, -8($sp)
         lw $t0, -12($sp)
         lw $t1, -16($sp)
+<<<<<<< HEAD
         addi $sp, $sp, 20 # Restauro los valores de $ra, $a0, $a1, $t0 y $t1 en la pila
 
         bne $v0, $zero, finded # Verifico que no se encontro ningun resultado en la sublista accedida con la recursion
@@ -293,6 +318,33 @@ find_father:
 
     end_find_father:
         jr $ra # Termino la funcion
+=======
+
+        addi $sp, $sp, 20
+
+        bne $v0, $zero, finded
+
+    empty_sublist_father:
+        lw $t0, 12($t0)
+
+    for_find_father:
+        beq $t1, $t0, not_finded
+        j xd_find_father
+
+    not_finded:
+        li $v0, 0
+        j end_find_father
+
+    finded:
+        li $t5, 2
+        beq $t5, $v1, end_find_father
+        move $v0, $t0
+        addi $v1, 1
+        j end_find_father
+
+    end_find_father:
+        jr $ra
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
 # -----------------------------------------------------------------------------------
 
@@ -302,16 +354,25 @@ find_father:
 # Devuelve en $v0, la lista sin el elemento indicado.
 
 eliminate:
+<<<<<<< HEAD
     addi $sp, $sp, -12 # Guardo en la pila $ra, $a0 y $a1
+=======
+    addi $sp, $sp, -12
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
     sw $ra, 0($sp)
     sw $a0, -4($sp)
     sw $a1, -8($sp)
 
+<<<<<<< HEAD
     jal search # Llamo a search para buscar la direccion en la lista del elemento a eliminar
+=======
+    jal search
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
     lw $ra, 0($sp)
     lw $a0, -4($sp)
     lw $a1, -8($sp)
+<<<<<<< HEAD
     addi $sp, $sp, 12 # Restauro $ra, $a0 y $a1
 
     beq $v0, $zero, end4 # Verifico que el elemento buscado este en la lista
@@ -319,31 +380,56 @@ eliminate:
 
     li $v1, 0 # Seteo $v1 a 0 para poder utilizar find_father correctamente
     addi $sp, $sp, -16 # Guardo en la pila $ra, $a0, $a1 y $t1
+=======
+    addi $sp, $sp, 12
+
+    beq $v0, $zero, end4
+    move $t0, $v0
+
+    li $v1, 0
+    addi $sp, $sp, -16
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
     sw $ra, 0($sp)
     sw $a0, -4($sp)
     sw $a1, -8($sp)
     sw $t0, -12($sp)
 
+<<<<<<< HEAD
     move $a1, $t0 # Muevo a $a1 la direccion del elemento a eliminar en la lista
 
     jal find_father # Llamo a find_father para buscar la direccion del padre del elemento a eliminar
+=======
+    move $a1, $t0
+
+    jal find_father
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
     lw $ra, 0($sp)
     lw $a0, -4($sp)
     lw $a1, -8($sp)
     lw $t0, -12($sp)
+<<<<<<< HEAD
     addi $sp, $sp, 16 # Restauro $ra, $a0 y $a1
 
     move $t1, $v0 # Muevo la direccion del padre a $t1 para no perder su valor
 
     lw $t2, 0($t0) # Guardo en $t2, la direccion del anterior elemento
     beq $t0, $t2, alone # Se fija si el elemento esta solo en la lista
+=======
+    addi $sp, $sp, 16
+
+    move $t1, $v0
+
+    lw $t2, 0($t0)
+    beq $t0, $t2, alone
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
     lw $t3, 12($t0) # Cargo en $t3 el siguiente al eliminado
     lw $t4, 0($t0) # Cargo en $t4 el anterior al eliminado
     sw $t4, 0($t3) # Vinculo al siguiente del eliminado con el anterior
     sw $t3, 12($t4) # Vinculo al anterior del eliminado con el siguiente
 
+<<<<<<< HEAD
     beq $t0, $t1, supreme # Verifico si el elemento es parte de la lista suprema
 
     sw $t3, 8($t1) # Vinculo al padre con el siguiente al eliminado
@@ -365,6 +451,27 @@ eliminate:
 
     end4:
         jr $ra # Termino la funcion
+=======
+    beq $t0, $t1, supreme
+
+    sw $t3, 8($t1) # Vinculo al padre con el siguiente al eliminado
+
+    j end4
+
+    supreme:
+        move $v0, $t3
+        bne $t0, $t2, end4
+
+    supreme_alone:
+        li $v0, 0
+        j end4
+
+    alone:
+        sw $zero, 8($t1)
+
+    end4:
+        jr $ra
+>>>>>>> 5f7f75d3ed4c853a570c896a7da2574dc9dba625
 
 
 # -----------------------------------------------------------------------------------
