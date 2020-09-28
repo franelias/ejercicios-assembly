@@ -17,6 +17,8 @@ add_q:  .asciiz "Las sublistas disponibles con sus elementos son: \n"
 
 add_l: .asciiz "Ingrese su opcion: "
 
+test: .asciiz "testing"
+
 # struct List {
 #     struct List *prev;
 #     char *name;
@@ -42,6 +44,10 @@ main:
 
     addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
     sw $ra, 0($sp)
+
+    li $a0, 0
+    la $a1, test($0)
+    li $a2, 0
 
     jal new_element # Llama a new_element
 
@@ -172,7 +178,6 @@ search:
     move $t1, $a0
 
 xddd:
-
     beq $a0, $zero, failed
 
     lw $a1, 4($t0)
@@ -230,44 +235,136 @@ xddd:
     end3:
         jr $ra
 
-# [
-#     "Perro"
-#     [
-#         "Caniche",
-#         "Corgi"
-#     ],
-#     "Gato"
-#     [],
-#     "Ave"
-#     [
-#         "Paloma"
-#     ]
-# ]
 
+# -----------------------------------------------------------------------------------
 
-# USAR EN ELIMINATE
-# move $t0, $a0
-#
-# lw $t2, 4($t0)
-#
-# li $v0, 4
-# la $a0, add_q($0)
-# syscall
-#
-# addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
-# sw $ra, 0($sp)
-#
-# move $a0, $v0
-#
-# jal print_list
-#
-# lw $ra, 0($sp)
-# addi $sp, $sp, 4 # Carga el contenido anterior de $ra
-#
-# li $v0, 4
-# la $a0, add_l($0)
-# syscall
+# [Busca el padre de un elemento]
+# Recibe en $a0 la direccion de una lista
+# y en $a1, la direccion del elemento buscado
+# Devuelve en $v0, el padre del elemento buscado
 
+find_father:
+    move $t0, $a0
+    move $t1, $a0
+
+    xd_find_father:
+        beq $t0, $a1, finded
+
+        lw $t2, 8($t0)
+
+        beq $t2, $zero, empty_sublist_father
+
+        addi $sp, $sp, -20
+        sw $ra, 0($sp)
+        sw $a0, -4($sp)
+        sw $a1, -8($sp)
+        sw $t0, -12($sp)
+        sw $t1, -16($sp)
+
+        move $a0, $t2
+
+        jal find_father
+
+        lw $ra, 0($sp)
+        lw $a0, -4($sp)
+        lw $a1, -8($sp)
+        lw $t0, -12($sp)
+        lw $t1, -16($sp)
+
+        addi $sp, $sp, 20
+
+        bne $v0, $zero, finded
+
+    empty_sublist_father:
+        lw $t0, 12($t0)
+
+    for_find_father:
+        beq $t1, $t0, not_finded
+        j xd_find_father
+
+    not_finded:
+        li $v0, 0
+        j end_find_father
+
+    finded:
+        li $t5, 2
+        beq $t5, $v1, end_find_father
+        move $v0, $t0
+        addi $v1, 1
+        j end_find_father
+
+    end_find_father:
+        jr $ra
+
+# -----------------------------------------------------------------------------------
+
+# [Elimina un elemento de una lista]
+# Recibe en $a0 la direccion de una lista
+# y en $a1 la direccion del nombre del elemento buscado.
+# Devuelve en $v0, la lista sin el elemento indicado.
+
+eliminate:
+    addi $sp, $sp, -12
+    sw $ra, 0($sp)
+    sw $a0, -4($sp)
+    sw $a1, -8($sp)
+
+    jal search
+
+    lw $ra, 0($sp)
+    lw $a0, -4($sp)
+    lw $a1, -8($sp)
+    addi $sp, $sp, 12
+
+    beq $v0, $zero, end4
+    move $t0, $v0
+
+    li $v1, 0
+    addi $sp, $sp, -16
+    sw $ra, 0($sp)
+    sw $a0, -4($sp)
+    sw $a1, -8($sp)
+    sw $t0, -12($sp)
+
+    move $a1, $t0
+
+    jal find_father
+
+    lw $ra, 0($sp)
+    lw $a0, -4($sp)
+    lw $a1, -8($sp)
+    lw $t0, -12($sp)
+    addi $sp, $sp, 16
+
+    move $t1, $v0
+
+    lw $t2, 0($t0)
+    beq $t0, $t2, alone
+
+    lw $t3, 12($t0) # Cargo en $t3 el siguiente al eliminado
+    lw $t4, 0($t0) # Cargo en $t4 el anterior al eliminado
+    sw $t4, 0($t3) # Vinculo al siguiente del eliminado con el anterior
+    sw $t3, 12($t4) # Vinculo al anterior del eliminado con el siguiente
+
+    beq $t0, $t1, supreme
+
+    sw $t3, 8($t1) # Vinculo al padre con el siguiente al eliminado
+
+    j end4
+
+    supreme:
+        move $v0, $t3
+        bne $t0, $t2, end4
+
+    supreme_alone:
+        li $v0, 0
+        j end4
+
+    alone:
+        sw $zero, 8($t1)
+
+    end4:
+        jr $ra
 
 
 # -----------------------------------------------------------------------------------
