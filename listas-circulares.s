@@ -1,12 +1,46 @@
     .data
-menu:       .asciiz "[Menu Principal]
-1) Agregar una lista
-2) Eliminar una lista
-3) Agregar un elemento a una lista
-4) Eliminar un elemento de una lista
-5) Ver las listas
-6) Salir \n
+menu:       .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Menu Principal]
+1) Crear una nueva lista
+2) Agregar un nuevo elemento
+3) Eliminar un elemento
+4) Ver las listas
+5) Salir \n
 Elija una opcion: "
+
+menu_crear:     .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Crear una lista]
+Ingrese el nombre de la nueva lista: "
+
+menu_agregar:   .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Crear Nuevo Elemento]
+Ingrese el nombre del nuevo elemento: "
+
+menu_agregar2:  .asciiz "
+Ingrese el nombre de la lista donde quiere ingresar el elemento: "
+
+menu_eliminar:  .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Eliminar Elemento]
+Ingrese el nombre del elemento que desea eliminar: "
+
+menu_ver:       .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Ver listas]"
+
+menu_error:     .asciiz "\n
+#-----------------------------------------------------------------------------------
+[El valor ingresado no corresponde a ninguna de las opciones]"
+
+menu_vacio:     .asciiz "\n
+#-----------------------------------------------------------------------------------
+[No existe Ninguna Lista] \n"
+
+menu_continuar: .asciiz "
+Aprete ENTER para continuar"
 
 empty_print: .asciiz "[]"
 bracket: .asciiz "["
@@ -35,36 +69,189 @@ test: .asciiz "testing"
 
     .text
 main:
-    # li $v0, 4
-    # la $a0, Menu
-    # syscall
-    #
-    # li $v0, 5 # Ingresa un entero
-    # syscall
+    li $v0, 4
+    la $a0, menu
+    syscall
 
-    addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
+    li $v0, 5
+    syscall
 
-    li $a0, 0
-    la $a1, test($0)
+    li $t0, 1
+    li $t1, 2
+    li $t2, 3
+    li $t3, 4
+    li $t4, 5
+
+    beq $v0, $t0, crear_lista
+    beq $v0, $t1, agregar_elemento
+    beq $v0, $t2, eliminar_elemento
+    beq $v0, $t3, ver_listas
+    beq $v0, $t4, salir
+
+    j error
+
+    crear_lista:
+    li $v0, 4
+    la $a0, menu_crear
+    syscall
+
+    li $v0, 5
+    syscall
+
+    move $a0, $t5
+    move $a1, $v0
     li $a2, 0
 
-    jal new_element # Llama a new_element
-
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4 # Carga el contenido anterior de $ra
-
-    addi $sp, $sp, -4 # Guarda el contenido de $ra en la pila
+    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
     sw $ra, 0($sp)
-
-    move $a0, $v0
-
-    jal print_list
-
+    sw $t5, -4($sp)
+    jal new_element
     lw $ra, 0($sp)
-    addi $sp, $sp, 4 # Carga el contenido anterior de $ra
+    lw $t5, -4($sp)
+    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
 
+    move $t5, $v0
+
+    j main
+
+    agregar_elemento:
+    beq $t5, $zero, vacio
+
+    li $v0, 4
+    la $a0, menu_agregar
+    syscall
+
+    li $v0, 5
+    syscall
+    move $t6, $v0
+
+    li $v0, 4
+    la $a0, menu_agregar2
+    syscall
+
+    li $v0, 5
+    syscall
+
+    move $a0, $t5
+    move $a1, $v0
+
+    addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+    sw $t5, -4($sp)
+    sw $t6, -8($sp)
+    jal search
+    lw $ra, 0($sp)
+    lw $t5, -4($sp)
+    lw $t6, -8($sp)
+    addi $sp, $sp, 12 # Carga el contenido anterior de $ra
+    move $t7, $v0
+
+    move $a0, $t5
+    move $a1, $t6
+    li $a2, 0
+
+    addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+    sw $t5, -4($sp)
+    sw $t6, -8($sp)
+    jal new_element
+    lw $ra, 0($sp)
+    lw $t5, -4($sp)
+    lw $t6, -8($sp)
+    addi $sp, $sp, 12 # Carga el contenido anterior de $ra
+    move $t6, $v0
+
+    move $a0, $t7
+    move $a1, $t6
+
+    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+    sw $t5, -4($sp)
+    jal update
+    lw $ra, 0($sp)
+    lw $t5, -4($sp)
+    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+
+    move $t5, $v0
+
+    j main
+
+    eliminar_elemento:
+    beq $t5, $zero, vacio
+
+    li $v0, 4
+    la $a0, menu_eliminar
+    syscall
+
+    li $v0, 5
+    syscall
+
+    move $a0, $t5
+    move $a1, $v0
+    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+    sw $t5, -4($sp)
+    jal eliminate
+    lw $ra, 0($sp)
+    lw $t5, -4($sp)
+    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+
+    move $t5, $v0
+
+    j main
+
+    ver_listas:
+    beq $t5, $zero, vacio
+
+    li $v0, 4
+    la $a0, menu_ver
+    syscall
+
+    move $a0, $t5
+    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+    sw $ra, 0($sp)
+    sw $t5, -4($sp)
+    jal print_list
+    lw $ra, 0($sp)
+    lw $t5, -4($sp)
+    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+
+    li $v0, 4
+    la $a0, menu_continuar
+    syscall
+
+    li $v0, 5
+    syscall
+
+    salir:
     jr $ra
+
+    error:
+    li $v0, 4
+    la $a0, menu_error
+    syscall
+    j main
+
+    li $v0, 4
+    la $a0, menu_continuar
+    syscall
+
+    li $v0, 5
+    syscall
+
+    vacio:
+    li $v0, 4
+    la $a0, menu_vacio
+    syscall
+
+    li $v0, 4
+    la $a0, menu_continuar
+    syscall
+
+    li $v0, 5
+    syscall
+
+    j main
 
 # -----------------------------------------------------------------------------------
 
@@ -372,6 +559,7 @@ eliminate:
 # [Compara dos strings]
 # Recibe en $a0 y $a1 las direcciones de dos strings
 # Devuelve en $v0, un 1 si son iguales, 0 si no
+
 compare:
     move $t2, $a0 # Guardo en $t2, el valor de $a0
     move $t3, $a1 # Guardo en $t3, el valor de $a1
@@ -398,13 +586,13 @@ compare:
     end_for2:
         jr $ra # Termino la funcion
 
+# -----------------------------------------------------------------------------------
 
-#      f ->  1 -> 2 -> 3 -> 4 -> 1 .....
-#
-#      $t0 = 4
-#
-#  (f) 1 <- 2 -> 3
-#
-#      3 <- 4 -> 1 (f)
-#
-#      4 <- f -> 1
+# [Actualiza el object pointer de una lista]
+# Recibe $a0 la lista que se quiere actualizar, en $a1 la lista que se convertira en object pointer ???????????????????????????????????????????????????????????????????????
+# Devuelve en $v0 la direccion de la lista con el nuevo object pointer
+
+update:
+    move $t0, $a0
+    sw $a1, 8($t0)
+    move $v0, $t0
