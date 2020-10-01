@@ -29,7 +29,7 @@ Ingrese el nombre del elemento que desea eliminar: "
 
 menu_ver:       .asciiz "\n
 #-----------------------------------------------------------------------------------
-[Ver listas]"
+[Ver listas]\n"
 
 menu_error:     .asciiz "\n
 #-----------------------------------------------------------------------------------
@@ -51,7 +51,9 @@ add_q:  .asciiz "Las sublistas disponibles con sus elementos son: \n"
 
 add_l: .asciiz "Ingrese su opcion: "
 
-test: .asciiz "testing"
+nombre: .space 10
+nombre2: .space 10
+nombre3: .space 10
 
 # struct List {
 #     struct List *prev;
@@ -66,9 +68,10 @@ test: .asciiz "testing"
 #   prev   -  nombre  -  obj_ptr -   sig
 #
 # 10001000 - 10001004 - 10001008 - 10001012
-
     .text
 main:
+    li $t5, 0
+next:
     li $v0, 4
     la $a0, menu
     syscall
@@ -91,167 +94,170 @@ main:
     j error
 
     crear_lista:
-    li $v0, 4
-    la $a0, menu_crear
-    syscall
+        move $a0, $t5
+        li $a2, 0
 
-    li $v0, 5
-    syscall
+        addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        jal new_element
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+        move $t5, $v0
 
-    move $a0, $t5
-    move $a1, $v0
-    li $a2, 0
+        li $v0, 4
+        la $a0, menu_crear
+        syscall
 
-    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    jal new_element
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+        li $v0, 8
+        lw $a0, 4($t5)
+        li $a1, 16
+        syscall
 
-    move $t5, $v0
-
-    j main
+        j next
 
     agregar_elemento:
-    beq $t5, $zero, vacio
+    .globl dd
+    dd:
+        beq $t5, $zero, vacio
 
-    li $v0, 4
-    la $a0, menu_agregar
-    syscall
+        li $v0, 4
+        la $a0, menu_agregar2
+        syscall
 
-    li $v0, 5
-    syscall
-    move $t6, $v0
+        li $v0, 8
+        la $a0, nombre3($0)
+        li $a1, 16
+        syscall
 
-    li $v0, 4
-    la $a0, menu_agregar2
-    syscall
+        move $a0, $t5
+        la $a1, nombre3($0)
 
-    li $v0, 5
-    syscall
+        addi $sp, $sp, -20 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        sw $t6, -8($sp)
+        sw $a0, -12($sp)
+        sw $a1, -16($sp)
+        jal search
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        lw $t6, -8($sp)
+        lw $a0, -12($sp)
+        lw $a1, -16($sp)
+        addi $sp, $sp, 20 # Carga el contenido anterior de $ra
+        move $t7, $v0
 
-    move $a0, $t5
-    move $a1, $v0
 
-    addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    sw $t6, -8($sp)
-    jal search
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    lw $t6, -8($sp)
-    addi $sp, $sp, 12 # Carga el contenido anterior de $ra
-    move $t7, $v0
 
-    move $a0, $t5
-    move $a1, $t6
-    li $a2, 0
+        li $a0, 0
+        # la $a1, nombre2($0)
+        li $a2, 0
 
-    addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    sw $t6, -8($sp)
-    jal new_element
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    lw $t6, -8($sp)
-    addi $sp, $sp, 12 # Carga el contenido anterior de $ra
-    move $t6, $v0
+        addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        sw $t6, -8($sp)
+        jal new_element
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        lw $t6, -8($sp)
+        addi $sp, $sp, 12 # Carga el contenido anterior de $ra
+        move $t6, $v0
 
-    move $a0, $t7
-    move $a1, $t6
+        li $v0, 4
+        la $a0, menu_agregar
+        syscall
 
-    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    jal update
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+        li $v0, 8
+        lw $a0, 4($t6)
+        li $a1, 10
+        syscall
 
-    move $t5, $v0
+        addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        move $a0, $t7
+        move $a1, $t6
+        jal update
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        addi $sp, $sp, 8 # Carga el contenido anterior de $ra
 
-    j main
+        j next
 
     eliminar_elemento:
-    beq $t5, $zero, vacio
+        beq $t5, $zero, vacio
 
-    li $v0, 4
-    la $a0, menu_eliminar
-    syscall
+        li $v0, 4
+        la $a0, menu_eliminar
+        syscall
 
-    li $v0, 5
-    syscall
+        li $v0, 5
+        syscall
 
-    move $a0, $t5
-    move $a1, $v0
-    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    jal eliminate
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+        move $a0, $t5
+        move $a1, $v0
+        addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        jal eliminate
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        addi $sp, $sp, 8 # Carga el contenido anterior de $ra
 
-    move $t5, $v0
+        move $t5, $v0
 
-    j main
+        j next
 
     ver_listas:
-    beq $t5, $zero, vacio
+        beq $t5, $zero, vacio
 
-    li $v0, 4
-    la $a0, menu_ver
-    syscall
+        li $v0, 4
+        la $a0, menu_ver
+        syscall
 
-    move $a0, $t5
-    addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
-    sw $ra, 0($sp)
-    sw $t5, -4($sp)
-    jal print_list
-    lw $ra, 0($sp)
-    lw $t5, -4($sp)
-    addi $sp, $sp, 8 # Carga el contenido anterior de $ra
+        move $a0, $t5
+        addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $t5, -4($sp)
+        jal print_list
+        lw $ra, 0($sp)
+        lw $t5, -4($sp)
+        addi $sp, $sp, 8 # Carga el contenido anterior de $ra
 
-    li $v0, 4
-    la $a0, menu_continuar
-    syscall
-
-    li $v0, 5
-    syscall
+        j next
 
     salir:
-    jr $ra
+        jr $ra
 
     error:
-    li $v0, 4
-    la $a0, menu_error
-    syscall
-    j main
+        li $v0, 4
+        la $a0, menu_error
+        syscall
+        j next
 
-    li $v0, 4
-    la $a0, menu_continuar
-    syscall
+        li $v0, 4
+        la $a0, menu_continuar
+        syscall
 
-    li $v0, 5
-    syscall
+        li $v0, 5
+        syscall
 
     vacio:
-    li $v0, 4
-    la $a0, menu_vacio
-    syscall
+        li $v0, 4
+        la $a0, menu_vacio
+        syscall
 
-    li $v0, 4
-    la $a0, menu_continuar
-    syscall
+        li $v0, 4
+        la $a0, menu_continuar
+        syscall
 
-    li $v0, 5
-    syscall
+        li $v0, 5
+        syscall
 
-    j main
+        j next
 
 # -----------------------------------------------------------------------------------
 
@@ -267,26 +273,35 @@ new_element:
     li $v0, 9
     li $a0, 16
     syscall
+    move $t2, $v0
 
-    sw $a1, 4($v0)  # Guarda el nombre de la lista en el nuevo elemento
-    sw $a2, 8($v0)  # Guarda la direc del objeto en el nuevo elemento
+    li $v0, 9
+    li $a0, 16
+    syscall
+
+
+
+    sw $v0, 4($t2)  # Guarda el nombre de la lista en el nuevo elemento
+    sw $a2, 8($t2)  # Guarda la direc del objeto en el nuevo elemento
 
     beq $t0, $zero, empty
 
     lw $t1, 0($t0)  # Obtiene la direc del previo del antiguo elemento
-    sw $t1, 0($v0)  # Guarda la direc del previo en el nuevo elemento
-    sw $t0, 12($v0) # Guarda la direc del siguiente en el nuevo elemento
+    sw $t1, 0($t2)  # Guarda la direc del previo en el nuevo elemento
+    sw $t0, 12($t2) # Guarda la direc del siguiente en el nuevo elemento
 
-    sw $v0, 0($t0)
-    sw $v0, 12($t1)
+    sw $t2, 0($t0)
+    sw $t2, 12($t1)
 
     j final
 
     empty:
-        sw $v0, 0($v0)  # Guarda la direc del previo en el nuevo elemento
-        sw $v0, 12($v0) # Guarda la direc del siguiente en el nuevo elemento
+        sw $t2, 0($t2)  # Guarda la direc del previo en el nuevo elemento
+        sw $t2, 12($t2) # Guarda la direc del siguiente en el nuevo elemento
 
     final:
+        move $a0, $t0
+        move $v0, $t2
         jr $ra
 
  # -----------------------------------------------------------------------------------
@@ -367,7 +382,6 @@ search:
 xddd:
     beq $a0, $zero, failed # Verifico si $a0 es nula
 
-    lw $a1, 4($t0) # Guardo en $a1, el nombre del elemento $t0
 
     addi $sp, $sp, -20 # Guardo el contenido de $ra en la pila
     sw $ra, 0($sp)
@@ -376,6 +390,7 @@ xddd:
     sw $t0, -12($sp)
     sw $t1, -16($sp)
 
+    lw $a0, 4($t0) # Guardo en $a1, el nombre del elemento $t0
     jal compare
 
     lw $ra, 0($sp)
@@ -383,11 +398,10 @@ xddd:
     lw $a1, -8($sp)
     lw $t0, -12($sp)
     lw $t1, -16($sp)
-    addi $sp, $sp, 12 # Restauro el contenido anterior de $ra
+    addi $sp, $sp, 20 # Restauro el contenido anterior de $ra
 
     li $t7, 1 # Guardo en $t7, el valor 1
-    move $t6, $v0 # Guardo en $t6, el valor de $v0
-    beq $v0, $t7, end3 # Verifico $v0 es igual a 1 (Esto es en el caso de que ya se encuentre el valor buscado)
+    beq $v0, $t7, success # Verifico $v0 es igual a 1 (Esto es en el caso de que ya se encuentre el valor buscado
 
     lw $t2, 8($t0) # Guarda en $t2, el object pointer de $t0
     beq $t2, $zero, empty_sublist3 # Verifico si $t2 es nulo
@@ -403,7 +417,7 @@ xddd:
     lw $ra, 0($sp)
     lw $t0, -4($sp)
     lw $t1, -8($sp)
-    addi $sp, $sp, 12 # Restauro $ra, $t0 y $t1
+    addi $sp, $sp, 16 # Restauro $ra, $t0 y $t1
 
     empty_sublist3:
         lw $t0, 12($t0) # Guardo en $t0 la direc del siguiente elemento
@@ -413,7 +427,7 @@ xddd:
         j xddd
 
     success:
-        move $v0, $t6 #Guardo en $v0 el valor de $t6
+        move $v0, $t0 #Guardo en $v0 el valor de $t6
         j end3
 
     failed:
@@ -589,10 +603,53 @@ compare:
 # -----------------------------------------------------------------------------------
 
 # [Actualiza el object pointer de una lista]
-# Recibe $a0 la lista que se quiere actualizar, en $a1 la lista que se convertira en object pointer ???????????????????????????????????????????????????????????????????????
+# Recibe $a0 la lista que se quiere actualizar, en $a1 la lista que se convertira en object pointer
 # Devuelve en $v0 la direccion de la lista con el nuevo object pointer
 
 update:
     move $t0, $a0
-    sw $a1, 8($t0)
-    move $v0, $t0
+
+    lw $t2, 8($t0)
+    beq $t2, $zero, none
+
+    more:
+        # quiero agregar el nodo miguel a perro[pancho], update(perro[pancho],miguel) = perro[pancho, miguel]
+        #
+        # $t2 = pancho
+        # $t3 = pancho
+        #
+        # miguel <- pancho -> miguel
+        #
+        # pancho <- miguel -> pancho
+
+        lw $t3, 0($t2)
+        sw $a1, 12($t3)
+        sw $a1, 0($t2)
+        sw $t3, 0($a1)
+        sw $t2, 12($a1)
+
+        j end_update
+
+    none:
+        sw $a1, 8($t0)
+
+    end_update:
+        move $v0, $t0
+        jr $ra
+
+
+        [0x10040000]		        0x10040080  0x10040010  0x10040020  0x10040080 LISTA SUPREMA
+        [0x10040020]		        0x100400c0  0x10040030  0x10040040  0x100400c0
+        [0x10040040]		        0x10040060  0x10040050  0x00000000  0x10040060
+        [0x10040060]		        0x10040040  0x10040070  0x00000000  0x10040040
+        [0x10040080]		        0x10040000  0x10040090  0x100400a0  0x10040000 LISTA SUPREMA
+        [0x100400a0]		        0x10040120  0x100400b0  0x00000000  0x10040120
+        [0x100400c0]		        0x10040020  0x100400d0  0x00000000  0x10040020
+        [0x100400e0]		        0x100400e0  0x100400f0  0x00000000  0x100400e0
+        [0x10040100]		        0x10040100  0x10040110  0x00000000  0x10040100
+        [0x10040120]		        0x100400a0  0x10040130  0x00000000  0x100400a0
+        [0x10040140]		        0x10040140  0x10040150  0x00000000  0x10040140
+        [0x10040160]		        0x10040160  0x10040170  0x00000000  0x10040160
+        [0x10040180]		        0x10040180  0x10040190  0x00000000  0x10040180
+
+kk[xddd,a], perro[oancho[pp,popo],juli]
