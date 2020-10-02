@@ -15,11 +15,11 @@ menu_crear:     .asciiz "\n
 Ingrese el nombre de la nueva lista: "
 
 menu_agregar:   .asciiz "\n
-#-----------------------------------------------------------------------------------
-[Crear Nuevo Elemento]
 Ingrese el nombre del nuevo elemento: "
 
-menu_agregar2:  .asciiz "
+menu_agregar2:  .asciiz "\n
+#-----------------------------------------------------------------------------------
+[Crear Nuevo Elemento]
 Ingrese el nombre de la lista donde quiere ingresar el elemento: "
 
 menu_eliminar:  .asciiz "\n
@@ -29,7 +29,7 @@ Ingrese el nombre del elemento que desea eliminar: "
 
 menu_ver:       .asciiz "\n
 #-----------------------------------------------------------------------------------
-[Ver listas]\n"
+[Ver listas]\n\n"
 
 menu_error:     .asciiz "\n
 #-----------------------------------------------------------------------------------
@@ -51,9 +51,9 @@ add_q:  .asciiz "Las sublistas disponibles con sus elementos son: \n"
 
 add_l: .asciiz "Ingrese su opcion: "
 
-nombre: .space 10
-nombre2: .space 10
-nombre3: .space 10
+nombre: .space 32
+nombre2: .space 32
+nombre3: .space 32
 
 # struct List {
 #     struct List *prev;
@@ -68,6 +68,7 @@ nombre3: .space 10
 #   prev   -  nombre  -  obj_ptr -   sig
 #
 # 10001000 - 10001004 - 10001008 - 10001012
+
     .text
 main:
     li $t5, 0
@@ -112,14 +113,12 @@ next:
 
         li $v0, 8
         lw $a0, 4($t5)
-        li $a1, 16
+        li $a1, 32
         syscall
 
         j next
 
     agregar_elemento:
-    .globl dd
-    dd:
         beq $t5, $zero, vacio
 
         li $v0, 4
@@ -128,7 +127,7 @@ next:
 
         li $v0, 8
         la $a0, nombre3($0)
-        li $a1, 16
+        li $a1, 32
         syscall
 
         move $a0, $t5
@@ -194,11 +193,14 @@ next:
         la $a0, menu_eliminar
         syscall
 
-        li $v0, 5
+        li $v0, 8
+        la $a0, nombre2($0)
+        li $a1, 32
         syscall
 
+
+        move $a1, $a0
         move $a0, $t5
-        move $a1, $v0
         addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
         sw $ra, 0($sp)
         sw $t5, -4($sp)
@@ -276,10 +278,8 @@ new_element:
     move $t2, $v0
 
     li $v0, 9
-    li $a0, 16
+    li $a0, 32
     syscall
-
-
 
     sw $v0, 4($t2)  # Guarda el nombre de la lista en el nuevo elemento
     sw $a2, 8($t2)  # Guarda la direc del objeto en el nuevo elemento
@@ -562,6 +562,7 @@ eliminate:
         j end4
 
     alone:
+        beq $a0, $t2, supreme_alone
         sw $zero, 8($t1) # Desvinculo del padre el elemento
 
     end4:
@@ -636,20 +637,3 @@ update:
     end_update:
         move $v0, $t0
         jr $ra
-
-
-        [0x10040000]		        0x10040080  0x10040010  0x10040020  0x10040080 LISTA SUPREMA
-        [0x10040020]		        0x100400c0  0x10040030  0x10040040  0x100400c0
-        [0x10040040]		        0x10040060  0x10040050  0x00000000  0x10040060
-        [0x10040060]		        0x10040040  0x10040070  0x00000000  0x10040040
-        [0x10040080]		        0x10040000  0x10040090  0x100400a0  0x10040000 LISTA SUPREMA
-        [0x100400a0]		        0x10040120  0x100400b0  0x00000000  0x10040120
-        [0x100400c0]		        0x10040020  0x100400d0  0x00000000  0x10040020
-        [0x100400e0]		        0x100400e0  0x100400f0  0x00000000  0x100400e0
-        [0x10040100]		        0x10040100  0x10040110  0x00000000  0x10040100
-        [0x10040120]		        0x100400a0  0x10040130  0x00000000  0x100400a0
-        [0x10040140]		        0x10040140  0x10040150  0x00000000  0x10040140
-        [0x10040160]		        0x10040160  0x10040170  0x00000000  0x10040160
-        [0x10040180]		        0x10040180  0x10040190  0x00000000  0x10040180
-
-kk[xddd,a], perro[oancho[pp,popo],juli]
