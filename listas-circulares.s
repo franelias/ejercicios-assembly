@@ -14,7 +14,7 @@ menu_crear:     .asciiz "\n
 [Crear una lista]
 Ingrese el nombre de la nueva lista: "
 
-menu_agregar:   .asciiz "\n
+menu_agregar:   .asciiz "
 Ingrese el nombre del nuevo elemento: "
 
 menu_agregar2:  .asciiz "\n
@@ -41,6 +41,9 @@ menu_vacio:     .asciiz "\n
 
 menu_continuar: .asciiz "
 Aprete ENTER para continuar"
+
+no: .asciiz "
+No se encontro la lista indicada"
 
 empty_print: .asciiz "[]"
 bracket: .asciiz "["
@@ -148,10 +151,9 @@ next:
         addi $sp, $sp, 20 # Carga el contenido anterior de $ra
         move $t7, $v0
 
-
+        beq $t7, $zero, findent
 
         li $a0, 0
-        # la $a1, nombre2($0)
         li $a2, 0
 
         addi $sp, $sp, -12 # Guarda el contenido de $ra en la pila
@@ -186,6 +188,13 @@ next:
 
         j next
 
+    findent:
+        li $v0, 4
+        la $a0, no
+        syscall
+
+        j next
+
     eliminar_elemento:
         beq $t5, $zero, vacio
 
@@ -197,7 +206,6 @@ next:
         la $a0, nombre2($0)
         li $a1, 32
         syscall
-
 
         move $a1, $a0
         move $a0, $t5
@@ -379,7 +387,7 @@ search:
     move $t0, $a0 # Guardo en $t0, la direccion de $a0
     move $t1, $a0 # Guardo en $t1, la direccic de $a0
 
-xddd:
+search_iteration:
     beq $a0, $zero, failed # Verifico si $a0 es nula
 
 
@@ -390,7 +398,7 @@ xddd:
     sw $t0, -12($sp)
     sw $t1, -16($sp)
 
-    lw $a0, 4($t0) # Guardo en $a1, el nombre del elemento $t0
+    lw $a0, 4($t0) # Guardo en $a0, el nombre del elemento $t0
     jal compare
 
     lw $ra, 0($sp)
@@ -419,12 +427,14 @@ xddd:
     lw $t1, -8($sp)
     addi $sp, $sp, 16 # Restauro $ra, $t0 y $t1
 
+    bne $v0, $zero, end3
+
     empty_sublist3:
         lw $t0, 12($t0) # Guardo en $t0 la direc del siguiente elemento
 
     for3:
         beq $t1, $t0, end3 # Verifico si $t1 es igual a $t0
-        j xddd
+        j search_iteration
 
     success:
         move $v0, $t0 #Guardo en $v0 el valor de $t6
@@ -435,7 +445,6 @@ xddd:
 
     end3:
         jr $ra # Termino la funcion
-
 
 # -----------------------------------------------------------------------------------
 
@@ -448,7 +457,7 @@ find_father:
     move $t0, $a0 # Muevo $a0 a $t0 y $t1 para poder cambiar sus valores
     move $t1, $a0
 
-    xd_find_father:
+    find_father_iteration:
         beq $t0, $a1, finded # Verifico
 
         lw $t2, 8($t0) # Cargo en $t2 la sublista
@@ -480,7 +489,7 @@ find_father:
 
     for_find_father:
         beq $t1, $t0, not_finded # Verifico si se llego al final de la lista/sublista
-        j xd_find_father
+        j find_father_iteration
 
     not_finded:
         li $v0, 0 # Si se llego al final de la lista/sublista y no se encontro coincidencia, devuelvo 0
@@ -515,7 +524,7 @@ eliminate:
     lw $a1, -8($sp)
     addi $sp, $sp, 12 # Restauro $ra, $a0 y $a1
 
-    beq $v0, $zero, end4 # Verifico que el elemento buscado este en la lista
+    beq $v0, $zero, pato # Verifico que el elemento buscado este en la lista
     move $t0, $v0 # Muevo la direccion del elemento en la lista a $t0 para no perder su valor
 
     li $v1, 0 # Seteo $v1 a 0 para poder utilizar find_father correctamente
@@ -549,9 +558,7 @@ eliminate:
 
     sw $t3, 8($t1) # Vinculo al padre con el siguiente al eliminado
 
-    move $v0, $a0 # Muevo la direccion de la lista sin el elemento a $v0
-
-    j end4 # Salto a end4
+    j pato # Salto a end4
 
     supreme:
         move $v0, $t3 # Si el elemento es parte de la lista suprema, muevo a $v0 la direccion de la nueva lista suprema
@@ -565,9 +572,11 @@ eliminate:
         beq $a0, $t2, supreme_alone
         sw $zero, 8($t1) # Desvinculo del padre el elemento
 
+    pato:
+        move $v0, $a0 # Muevo la direccion de la lista sin el elemento a $v0
+
     end4:
         jr $ra # Termino la funcion
-
 
 # -----------------------------------------------------------------------------------
 
@@ -614,15 +623,6 @@ update:
     beq $t2, $zero, none
 
     more:
-        # quiero agregar el nodo miguel a perro[pancho], update(perro[pancho],miguel) = perro[pancho, miguel]
-        #
-        # $t2 = pancho
-        # $t3 = pancho
-        #
-        # miguel <- pancho -> miguel
-        #
-        # pancho <- miguel -> pancho
-
         lw $t3, 0($t2)
         sw $a1, 12($t3)
         sw $a1, 0($t2)
