@@ -54,6 +54,8 @@ add_q:  .asciiz "Las sublistas disponibles con sus elementos son: \n"
 
 add_l: .asciiz "Ingrese su opcion: "
 
+enter: .asciiz "\n"
+
 nombre: .space 32
 nombre2: .space 32
 nombre3: .space 32
@@ -119,6 +121,22 @@ next:
         li $a1, 32
         syscall
 
+        addi $sp, $sp, -24 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $a0, -4($sp)
+        sw $t0, -8($sp)
+        sw $t1, -12($sp)
+        sw $t2, -16($sp)
+        sw $t3, -20($sp)
+        jal delete_enter
+        lw $ra, 0($sp)
+        lw $a0, -4($sp)
+        lw $t0, -8($sp)
+        lw $t1, -12($sp)
+        lw $t2, -16($sp)
+        lw $t3, -20($sp)
+        addi $sp, $sp, 24 # Carga el contenido anterior de $ra
+
         j next
 
     agregar_elemento:
@@ -132,6 +150,22 @@ next:
         la $a0, nombre3($0)
         li $a1, 32
         syscall
+
+        addi $sp, $sp, -24 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $a0, -4($sp)
+        sw $t0, -8($sp)
+        sw $t1, -12($sp)
+        sw $t2, -16($sp)
+        sw $t3, -20($sp)
+        jal delete_enter
+        lw $ra, 0($sp)
+        lw $a0, -4($sp)
+        lw $t0, -8($sp)
+        lw $t1, -12($sp)
+        lw $t2, -16($sp)
+        lw $t3, -20($sp)
+        addi $sp, $sp, 24 # Carga el contenido anterior de $ra
 
         move $a0, $t5
         la $a1, nombre3($0)
@@ -173,8 +207,24 @@ next:
 
         li $v0, 8
         lw $a0, 4($t6)
-        li $a1, 10
+        li $a1, 32
         syscall
+
+        addi $sp, $sp, -24 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $a0, -4($sp)
+        sw $t0, -8($sp)
+        sw $t1, -12($sp)
+        sw $t2, -16($sp)
+        sw $t3, -20($sp)
+        jal delete_enter
+        lw $ra, 0($sp)
+        lw $a0, -4($sp)
+        lw $t0, -8($sp)
+        lw $t1, -12($sp)
+        lw $t2, -16($sp)
+        lw $t3, -20($sp)
+        addi $sp, $sp, 24 # Carga el contenido anterior de $ra
 
         addi $sp, $sp, -8 # Guarda el contenido de $ra en la pila
         sw $ra, 0($sp)
@@ -206,6 +256,22 @@ next:
         la $a0, nombre2($0)
         li $a1, 32
         syscall
+
+        addi $sp, $sp, -24 # Guarda el contenido de $ra en la pila
+        sw $ra, 0($sp)
+        sw $a0, -4($sp)
+        sw $t0, -8($sp)
+        sw $t1, -12($sp)
+        sw $t2, -16($sp)
+        sw $t3, -20($sp)
+        jal delete_enter
+        lw $ra, 0($sp)
+        lw $a0, -4($sp)
+        lw $t0, -8($sp)
+        lw $t1, -12($sp)
+        lw $t2, -16($sp)
+        lw $t3, -20($sp)
+        addi $sp, $sp, 24 # Carga el contenido anterior de $ra
 
         move $a1, $a0
         move $a0, $t5
@@ -636,4 +702,24 @@ update:
 
     end_update:
         move $v0, $t0
+        jr $ra
+
+# -----------------------------------------------------------------------------------
+
+# [Reemplaza el \n del final de un string por el \0]
+# Recibe en $a0 la direccion del string
+
+delete_enter:
+    move $t0, $a0
+    lb $t2, enter
+    li $t3, 0
+
+    for_enter:
+        lb $t1, 0($t0)
+        beq $t1, $t2, end_enter
+        addi $t0, 1
+        j for_enter
+
+    end_enter:
+        sb $t3, 0($t0)
         jr $ra
